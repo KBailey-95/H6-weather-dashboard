@@ -2,17 +2,17 @@ var userInputEl = document.getElementById("user-input");
 var searchButtonEl = document.getElementById("search-button");
 
 var searchedCityButtonEl = document.getElementById("city1-btn");
-var searchedCityButtonEl2 = document.getElementById("city2-btn");
-var searchedCityButtonEl3 = document.getElementById("city3-btn");
-var searchedCityButtonEl4 = document.getElementById("city4-btn");
-var searchedCityButtonEl5 = document.getElementById("city5-btn");
+var searchedCityButton2El = document.getElementById("city2-btn");
+var searchedCityButton3El = document.getElementById("city3-btn");
+var searchedCityButton4El = document.getElementById("city4-btn");
+var searchedCityButton5El = document.getElementById("city5-btn");
 
 
 var searchedCityTextEl = document.getElementById("city1-txt");
-var searchedCityTextEl2 = document.getElementById("city2-txt");
-var searchedCityTextEl3 = document.getElementById("city3-txt");
-var searchedCityTextEl4 = document.getElementById("city4-txt");
-var searchedCityTextEl5 = document.getElementById("city5-txt");
+var searchedCityText2El = document.getElementById("city2-txt");
+var searchedCityText3El = document.getElementById("city3-txt");
+var searchedCityText4El = document.getElementById("city4-txt");
+var searchedCityText5El = document.getElementById("city5-txt");
 
 var currentCityEl = document.getElementById("current-city")
 var currentDateEl = document.getElementById("date");
@@ -75,7 +75,7 @@ var day3Desc = '';
 var day4Desc = '';
 var day5Desc = '';
 
-const apiKey = "52828bd95a263fd4260316440728f92b";
+const apiKey = "b0c59c774b0ae82e7f2188f68c1508b0";
 var userInput = '';
 var city;
 var state;
@@ -349,7 +349,239 @@ function getForecastedHighs() {
   console.log("day 5 desciption is: " + day5Desc);
 
   displayForecastedHighs();
-  updateForecastImages();
 }
+
+//button functionality
+var IndexBtn = document.getElementById("current-uv");
+uvIndexBtn.onclick = function() {
+  console.log("clicked on the UV BUTTON");
+  window.open("https://www.weather.gov/rah/uv", "_blank").focus();
+}
+
+function printData () {
+  console.log("printing the data to the screen");
+  currentDateEl.textContent = currentDate;
+  currentTempEl.textContent = currentTemp + "℉";
+  currentWindEl.textContent = currentWind + "mph";
+  currentHumidityEl.textContent = currentHumidity + "%rh";
+  currentUvEl.textContent = currentUVindex;
+  currentCityEl.textContent = cityName;
+  console.log("FINISHED printing the data to the screen");
+  clearAllInputs();
+
+  console.log(currentUVindex);
+  currentUvEl.className = "";
+
+  if (currentUVindex <= 3.00) {
+    currentUvEl.classList.add("btn", "btn-primary");
+  } else if (currentUVindex > 3.00 && currentData.current.uvi <= 7.00) {
+    currentUvEl.classList.add("btn", "btn-warning");
+  } else if (currentUVindex > 7.00) {
+    currentUvEl.classList.add("btn", "btn-danger");
+  } else {currentUvEl.classList.add("btn", "btn-dark");
+}}
+
+function pullAllWeatherData () {
+  console.log(currentURL);
+  console.log(forecastURL);
+  
+  fetch(currentURL)
+  .then(function (response1) {
+    return response1.json();
+  })
+  .then(function (data1) {
+    currentData = data1;
+    console.log("Today's Data:")
+    console.log(currentData);
+    distributeCurrentData(currentData);
+  });
+
+  fetch(forecastURL)
+  .then(function (response2) {
+    return response2.json();
+  })
+  .then(function (data2) {
+    forecastData = data2;
+    console.log("Forecast Data:");
+    console.log(forecastData);
+    console.log("city typed in is " + forecastData.city.name);
+    cityName = forecastData.city.name;
+    distributeForecastData(forecastData);
+  })
+};
+
+function makeLatLonFromZIP (zipData) {
+  latitude = zipData.coord.lat;
+  longitude = zipData.coord.lon;
+  console.log("latitude is: " + latitude)
+  console.log("longitude is: " + longitude)
+  forecastURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=imperial`;
+  currentURL = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude={part}&appid=${apiKey}&units=imperial`;
+  pullAllWeatherData ();
+};
+
+function makeLatLonFromCityState (dataFromCityState) {
+  latitude = dataFromCityState.coord.lat;
+  longitude = dataFromCityState.coord.lon;
+  currentURL = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude={part}&appid=${apiKey}&units=imperial`;
+  forecastURL = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=imperial`;
+  pullAllWeatherData ();
+};
+
+function getDataFromZIP (zip) {
+  urlFromZIP = "https://api.openweathermap.org/data/2.5/weather?zip=" + zip + "," + countryCode + "&appid=" + apiKey;
+  fetch(urlFromZIP)
+    .then(function (zipResponse) {
+      return zipResponse.json();
+    })
+    .then(function (zipData) {
+      dataFromZIP = zipData;
+      console.log(dataFromZIP);
+      if (dataFromZIP.cod == "404" || dataFromZIP.message == "city not found" || dataFromZIP.message == "invalid zip code") {
+        console.log("The city you gave cannot be found. Check your spelling...?");
+        showErrorModal();
+        return;
+      }
+    })
+    .then(function() {
+      makeLatLonFromZIP(dataFromZIP);
+      return dataFromZIP;
+    });
+};
+
+
+function getDataFromCityState (cS) {
+  urlFromCityState = "https://api.openweathermap.org/data/2.5/weather?q=" + cS + "&appid=" + apiKey;
+  fetch(urlFromCityState)
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    dataFromCityState = data;
+    console.log(dataFromCityState);
+    if (dataFromCityState.cod == "404" || dataFromCityState.message == "city not found" || dataFromCityState.message == "invalid zip code") {
+      console.log("The city you gave cannot be found. Check your spelling...?");
+      showErrorModal();
+    } else {
+      makeLatLonFromCityState(dataFromCityState);
+    }
+    return dataFromCityState;
+  });
+};
+
+
+function convertUserInput () {
+  cityStateArr = [];
+  cityStateArr = userInput.split(",");
+  city = cityStateArr[0];
+  state = cityStateArr[1].replace(/ /g, '');
+  cityState = city + "," + state + "," + countryCode;
+  getDataFromCityState(cityState);
+};
+
+function runWithZIP (z) {
+  getDataFromZIP(z);
+};
+
+function runWithCityState () {
+  convertUserInput();
+};
+
+
+function storeUserInput (uI) {
+  console.log("re-declaring that user input is: " + userInput);
+  if (!isNaN(userInput)) {
+    zipCode = userInput.toString(5);
+    console.log("The ZIP Code is: " + zipCode + ".");
+    localStorage.setItem("lsMostRecentWeatherSearch", zipCode);
+    mostRecentSearch = localStorage.getItem("lsMostRecentWeatherSearch");
+    storeSearch();
+    runWithZIP(zipCode);
+  } else if (userInput.includes(",") == false) {
+      showErrorModal();
+      return;
+  } else if (userInput.includes(",") == true) {
+    console.log("Passed the tests, and the city name is: " + userInput + ".");
+    localStorage.setItem("lsMostRecentWeatherSearch", userInput);
+    mostRecentSearch = localStorage.getItem("lsMostRecentWeatherSearch");
+    storeSearch();
+    runWithCityState();
+  } else {
+    console.log("input is unknown");
+    clearAllInputs();
+    showErrorModal();
+    return userInput;
+  };
+};
+
+function runApp (uI) {
+  displaySearchHistory();
+  storeUserInput(uI);
+};
+
+searchButtonEl.onclick = function() {
+  console.log("clicked SEARCH")
+  console.log("input is " + userInputEl.value);
+  userInput = userInputEl.value;
+  runApp();
+};
+
+//makes enter work
+userInputEl.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+   event.preventDefault();
+   searchButtonEl.click();
+  };
+});
+
+searchedCityButton1El.onclick = function () {userInput = storedSearches[0]; runApp(userInput);}
+searchedCityButton2El.onclick = function () {userInput = storedSearches[1]; runApp(userInput);}
+searchedCityButton3El.onclick = function () {userInput = storedSearches[2]; runApp(userInput);}
+searchedCityButton4El.onclick = function () {userInput = storedSearches[3]; runApp(userInput);}
+searchedCityButton5El.onclick = function () {userInput = storedSearches[4]; runApp(userInput);}
+searchedCityButton6El.onclick = function () {userInput = storedSearches[5]; runApp(userInput);}
+searchedCityButton7El.onclick = function () {userInput = storedSearches[6]; runApp(userInput);}
+searchedCityButton8El.onclick = function () {userInput = storedSearches[7]; runApp(userInput);}
+
+
+var errorInputModal = new bootstrap.Modal(document.getElementById('bad-input-modal'))
+var tryAgainBtnEl = document.getElementById("try-again-btn");
+var userInputAgainEl = document.getElementById("user-input-again");
+
+
+var storedSearches = JSON.parse(localStorage.getItem("lsStoredWeatherSearches")) || [];
+var mostRecentSearch = localStorage.getItem("lsMostRecentWeatherSearch");
+
+function storeSearch () {
+  storedSearches.unshift(mostRecentSearch);
+  storedSearches.splice(8);
+  localStorage.setItem("lsStoredWeatherSearches", JSON.stringify(storedSearches));
+  displaySearchHistory();
+};
+
+function displaySearchHistory () {
+  searchedCityButton1El.textContent = storedSearches[0];
+  searchedCityButton2El.textContent = storedSearches[1];
+  searchedCityButton3El.textContent = storedSearches[2];
+  searchedCityButton4El.textContent = storedSearches[3];
+  searchedCityButton5El.textContent = storedSearches[4];
+  searchedCityButton6El.textContent = storedSearches[5];
+  searchedCityButton7El.textContent = storedSearches[6];
+  searchedCityButton8El.textContent = storedSearches[7];
+};
+
+function clearAllInputs () {
+  userInput = '';
+  userInputEl.textContent = '';
+  userInput.value = '';
+  userInputEl.value = '';
+}
+
+function onPageLoad () {
+  clearAllInputs();
+  displaySearchHistory();
+}
+
+onPageLoad();
 
 
