@@ -351,12 +351,6 @@ function getForecastedHighs() {
   displayForecastedHighs();
 }
 
-//button functionality
-var IndexBtn = document.getElementById("current-uv");
-uvIndexBtn.onclick = function() {
-  console.log("clicked on the UV BUTTON");
-  window.open("https://www.weather.gov/rah/uv", "_blank").focus();
-}
 
 function printData () {
   console.log("printing the data to the screen");
@@ -380,6 +374,16 @@ function printData () {
     currentUvEl.classList.add("btn", "btn-danger");
   } else {currentUvEl.classList.add("btn", "btn-dark");
 }}
+
+function distributeCurrentData (w) {
+  currentMain = w.current.weather[0].description;
+  currentTemp = w.current.temp;
+  currentWind = w.current.wind_speed;
+  currentHumidity = w.current.humidity;
+  currentUVindex = w.current.uvi;
+  console.log("distributed current data");
+  setTimeout(printData(), 500);
+};
 
 function pullAllWeatherData () {
   console.log(currentURL);
@@ -515,7 +519,6 @@ function storeUserInput (uI) {
 };
 
 function runApp (uI) {
-  displaySearchHistory();
   storeUserInput(uI);
 };
 
@@ -534,19 +537,7 @@ userInputEl.addEventListener("keyup", function(event) {
   };
 });
 
-searchedCityButton1El.onclick = function () {userInput = storedSearches[0]; runApp(userInput);}
-searchedCityButton2El.onclick = function () {userInput = storedSearches[1]; runApp(userInput);}
-searchedCityButton3El.onclick = function () {userInput = storedSearches[2]; runApp(userInput);}
-searchedCityButton4El.onclick = function () {userInput = storedSearches[3]; runApp(userInput);}
-searchedCityButton5El.onclick = function () {userInput = storedSearches[4]; runApp(userInput);}
-searchedCityButton6El.onclick = function () {userInput = storedSearches[5]; runApp(userInput);}
-searchedCityButton7El.onclick = function () {userInput = storedSearches[6]; runApp(userInput);}
-searchedCityButton8El.onclick = function () {userInput = storedSearches[7]; runApp(userInput);}
 
-
-var errorInputModal = new bootstrap.Modal(document.getElementById('bad-input-modal'))
-var tryAgainBtnEl = document.getElementById("try-again-btn");
-var userInputAgainEl = document.getElementById("user-input-again");
 
 
 var storedSearches = JSON.parse(localStorage.getItem("lsStoredWeatherSearches")) || [];
@@ -556,19 +547,9 @@ function storeSearch () {
   storedSearches.unshift(mostRecentSearch);
   storedSearches.splice(8);
   localStorage.setItem("lsStoredWeatherSearches", JSON.stringify(storedSearches));
-  displaySearchHistory();
 };
 
-function displaySearchHistory () {
-  searchedCityButton1El.textContent = storedSearches[0];
-  searchedCityButton2El.textContent = storedSearches[1];
-  searchedCityButton3El.textContent = storedSearches[2];
-  searchedCityButton4El.textContent = storedSearches[3];
-  searchedCityButton5El.textContent = storedSearches[4];
-  searchedCityButton6El.textContent = storedSearches[5];
-  searchedCityButton7El.textContent = storedSearches[6];
-  searchedCityButton8El.textContent = storedSearches[7];
-};
+
 
 function clearAllInputs () {
   userInput = '';
@@ -579,7 +560,6 @@ function clearAllInputs () {
 
 function onPageLoad () {
   clearAllInputs();
-  displaySearchHistory();
 }
 
 onPageLoad();
